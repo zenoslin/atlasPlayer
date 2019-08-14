@@ -13,11 +13,13 @@ export default class AtlasPlayer {
     this.canvas = options.canvas;
     // 图集图片
     this.atlas = options.atlas;
-    // 图集JSON
-    this.json = options.json;
+    // 图集JSON路径
+    this.jsonPath = options.jsonPath;
 
     // 图集的加载DOM
     this.imgDom = new Image();
+    // 图集JSON对象
+    this.json = {};
     // 循环播放Key
     this.intervalKey = null;
     // 帧集合
@@ -41,10 +43,15 @@ export default class AtlasPlayer {
     }
     await this.loadImg(this.atlas);
 
-    if (!this.json) {
+    if (!this.jsonPath) {
       console.error("缺少图集的JSON！");
       return;
     }
+
+    await this.loadJson(this.jsonPath).then(res => {
+      this.json = JSON.parse(res);
+    });
+
     this.frames = this.json.frames;
     this.framesNum = Object.keys(this.frames).length;
 
@@ -102,6 +109,22 @@ export default class AtlasPlayer {
         reject(new Error(`无法加载图片${imgUrl}`));
       };
       this.imgDom.src = imgUrl;
+    });
+  }
+
+  loadJson(jsonPath) {
+    return new Promise((resolve, reject) => {
+      let request = new XMLHttpRequest();
+      request.open("get", jsonPath);
+      request.send(null);
+      request.onload = function() {
+        if (request.status == 200) {
+          /*返回状态为200，即为数据获取成功*/
+          resolve(request.responseText);
+        } else {
+          reject();
+        }
+      };
     });
   }
 }

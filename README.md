@@ -10,5 +10,19 @@
 import { AtlasPlayer } from "./AtlasPlayer.js";
 
 let canvas = document.getElementById("atlasPlayer");
-AtlasPlayer(canvas, "./crabAni.png");
+let player = new AtlasPlayer({
+  canvas: canvas,
+  atlas: "./crabAni.png",
+  jsonPath: "./crabAni.json"
+});
+player.play();
 ```
+
+## Todo
+
+- [] stop Fn
+- [] pause Fn
+- [] destroy Fn
+- [] set Fn
+- [] loop Fn
+- [] yoyo Fn

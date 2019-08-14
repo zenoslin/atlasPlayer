@@ -29,9 +29,12 @@ export default class AtlasPlayer {
     // 二维渲染上下文
     this.ctx = null;
     // 帧率
-    this.fps = null;
+    this.fps = 24;
     // 当前帧
-    this.index = null;
+    this.index = 0;
+
+    //是否播放
+    this._isPlay = false;
 
     this.init();
   }
@@ -75,29 +78,36 @@ export default class AtlasPlayer {
       this.queueFn = [];
     }
   }
-
+  /**
+   * 播放
+   */
   play() {
     if (!this.initComplete) {
       this.queueFn.push({ fn: this.play, arguments: [] });
       return;
     }
+    this._isPlay = true;
     let _this = this;
     this.interval = setInterval(function() {
       _this.ctx.clearRect(0, 0, _this.canvas.width, _this.canvas.height);
       let info = _this.frames[`${_this.index}.png`].frame;
-      _this.ctx.drawImage(
-        _this.imgDom,
-        info.x,
-        info.y,
-        info.w,
-        info.h,
-        0,
-        0,
-        _this.canvas.width,
-        _this.canvas.height
-      );
+      _this.ctx.drawImage(_this.imgDom, info.x, info.y, info.w, info.h, 0, 0, _this.canvas.width, _this.canvas.height);
       _this.index = _this.index < _this.framesNum - 1 ? _this.index + 1 : 0;
     }, 1000 / _this.fps);
+  }
+  /**
+   * 停止
+   */
+  stop() {
+    clearInterval(this.intervalKey);
+    this._isPlay = false;
+    this.index = 0;
+  }
+  /**
+   * 销毁
+   */
+  destroy() {
+    clearInterval(this.intervalKey);
   }
 
   loadImg(imgUrl) {

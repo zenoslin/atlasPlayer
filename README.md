@@ -20,9 +20,9 @@ player.play();
 
 ## Todo
 
-- [] stop Fn
-- [] pause Fn
-- [] destroy Fn
-- [] set Fn
-- [] loop Fn
-- [] yoyo Fn
+- [x] stop Fn
+- [x] destroy Fn
+- [ ] pause Fn
+- [ ] set Fn
+- [ ] loop Fn
+- [ ] yoyo Fn

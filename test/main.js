@@ -1,11 +1,10 @@
-import AtlasPlayer from "./atlasPlayer.js";
-
 window.onload = function() {
-  let canvas = document.getElementById("atlasPlayer");
+  let dom = document.getElementById("animation");
   let player = new AtlasPlayer({
-    canvas: canvas,
+    dom: dom,
     atlas: "./crabAni.png",
-    jsonPath: "./crabAni.json"
+    jsonPath: "./crabAni.json",
+    fps: 8
   });
   player.play();
 };

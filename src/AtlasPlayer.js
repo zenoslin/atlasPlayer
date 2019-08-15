@@ -1,4 +1,4 @@
-export default class AtlasPlayer {
+class AtlasPlayer {
   constructor(options) {
     let _this = this;
     if (!options) {
@@ -10,11 +10,13 @@ export default class AtlasPlayer {
     this.queueFn = [];
 
     // canvas
-    this.canvas = options.canvas;
+    this.dom = options.dom;
     // 图集图片
     this.atlas = options.atlas;
     // 图集JSON路径
     this.jsonPath = options.jsonPath;
+    // 帧率
+    this.fps = options.fps;
 
     // 图集的加载DOM
     this.imgDom = new Image();
@@ -28,15 +30,25 @@ export default class AtlasPlayer {
     this.framesNum = null;
     // 二维渲染上下文
     this.ctx = null;
-    // 帧率
-    this.fps = null;
     // 当前帧
-    this.index = null;
+    this.curFrame = 0;
+
+    // 正在播放
+    this._isPlay = false;
+    // 播放次数
+    this._times = 0;
+    this._width = 0;
+    this._height = 0;
 
     this.init();
   }
 
   async init() {
+    if (!this.dom) {
+      console.error("请指定DOM！");
+      return;
+    }
+
     if (!this.atlas) {
       console.error("请指定图集！");
       return;
@@ -55,17 +67,19 @@ export default class AtlasPlayer {
     this.frames = this.json.frames;
     this.framesNum = Object.keys(this.frames).length;
 
-    this.ctx = this.canvas.getContext("2d");
-    this.fps = 8;
-    this.index = 0;
+    let canvas = document.createElement("canvas");
+    canvas.style.width = canvas.style.height = "100%";
+    this.ctx = canvas.getContext("2d");
+    this.dom.appendChild(canvas);
 
     if (this.frames["0.png"]) {
-      this.canvas.width = this.frames["0.png"].frame.w;
-      this.canvas.height = this.frames["0.png"].frame.h;
+      this._width = canvas.width = this.frames["0.png"].frame.w;
+      this._height = canvas.height = this.frames["0.png"].frame.h;
     } else {
       console.error(`缺少初始帧 0.png`);
       return;
     }
+
     this.initComplete = true;
     if (this.queueFn.length > 0) {
       let _this = this;
@@ -81,10 +95,11 @@ export default class AtlasPlayer {
       this.queueFn.push({ fn: this.play, arguments: [] });
       return;
     }
+    this._isPlay = true;
     let _this = this;
-    this.interval = setInterval(function() {
-      _this.ctx.clearRect(0, 0, _this.canvas.width, _this.canvas.height);
-      let info = _this.frames[`${_this.index}.png`].frame;
+    this.intervalKey = setInterval(function() {
+      _this.ctx.clearRect(0, 0, _this._width, _this._height);
+      let info = _this.frames[`${_this.curFrame}.png`].frame;
       _this.ctx.drawImage(
         _this.imgDom,
         info.x,
@@ -93,11 +108,26 @@ export default class AtlasPlayer {
         info.h,
         0,
         0,
-        _this.canvas.width,
-        _this.canvas.height
+        _this._width,
+        _this._height
       );
-      _this.index = _this.index < _this.framesNum - 1 ? _this.index + 1 : 0;
+      let isEndFrame = _this.curFrame >= _this.framesNum - 1;
+      _this.curFrame = isEndFrame ? 0 : _this.curFrame + 1;
+      if (isEndFrame) {
+        this._times += 1;
+      }
     }, 1000 / _this.fps);
+  }
+
+  stop() {
+    clearInterval(this._interval);
+    this._isPlay = false;
+    this.curFrame = 0;
+    this._times = 0;
+  }
+
+  destroy() {
+    clearInterval(this.intervalKey);
   }
 
   loadImg(imgUrl) {

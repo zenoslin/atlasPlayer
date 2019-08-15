@@ -7,15 +7,16 @@
 ## Example
 
 ```js
-import { AtlasPlayer } from "./AtlasPlayer.js";
-
-let canvas = document.getElementById("atlasPlayer");
-let player = new AtlasPlayer({
-  canvas: canvas,
-  atlas: "./crabAni.png",
-  jsonPath: "./crabAni.json"
-});
-player.play();
+window.onload = function() {
+  let dom = document.getElementById("animation");
+  let player = new AtlasPlayer({
+    dom: dom,
+    atlas: "./crabAni.png",
+    jsonPath: "./crabAni.json",
+    fps: 8
+  });
+  player.play();
+};
 ```
 
 ## Todo

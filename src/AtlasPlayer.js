@@ -1,27 +1,33 @@
-class AtlasPlayer {
+/**
+ * @author       zenoslin <linze@tuzhanai.com>
+ * @copyright    2019 zenos Lin.
+ * @github       https://github.com/zenoslin/atlasPlayer
+ */
+
+export default class AtlasPlayer {
   constructor(options) {
-    let _this = this;
     if (!options) {
-      console.error("请设置参数！");
+      console.error('请设置参数！');
       return;
     }
     // 是否初始化完成
     this.initComplete = false;
     this.queueFn = [];
 
-    // canvas
+    // dom容器
     this.dom = options.dom;
     // 图集图片
     this.atlas = options.atlas;
+    // 图集JSON对象
+    this.json = options.json || {};
     // 图集JSON路径
-    this.jsonPath = options.jsonPath;
+    this.jsonPath = options.jsonPath || '';
     // 帧率
     this.fps = options.fps;
 
     // 图集的加载DOM
     this.imgDom = new Image();
-    // 图集JSON对象
-    this.json = {};
+
     // 循环播放Key
     this.intervalKey = null;
     // 帧集合
@@ -39,42 +45,36 @@ class AtlasPlayer {
     this._times = 0;
     this._width = 0;
     this._height = 0;
+    this._canvas = null;
+
+    this._isDestroy = false;
 
     this.init();
   }
 
   async init() {
     if (!this.dom) {
-      console.error("请指定DOM！");
+      console.error('请指定DOM！');
       return;
     }
 
     if (!this.atlas) {
-      console.error("请指定图集！");
+      console.error('请指定图集！');
       return;
     }
     await this.loadImg(this.atlas);
 
-    if (!this.jsonPath) {
-      console.error("缺少图集的JSON！");
-      return;
-    }
-
-    await this.loadJson(this.jsonPath).then(res => {
-      this.json = JSON.parse(res);
-    });
-
     this.frames = this.json.frames;
     this.framesNum = Object.keys(this.frames).length;
 
-    let canvas = document.createElement("canvas");
-    canvas.style.width = canvas.style.height = "100%";
-    this.ctx = canvas.getContext("2d");
-    this.dom.appendChild(canvas);
+    this._canvas = document.createElement('canvas');
+    this._canvas.style.width = this._canvas.style.height = '100%';
+    this.ctx = this._canvas.getContext('2d');
+    this.dom.appendChild(this._canvas);
 
-    if (this.frames["0.png"]) {
-      this._width = canvas.width = this.frames["0.png"].frame.w;
-      this._height = canvas.height = this.frames["0.png"].frame.h;
+    if (this.frames['0.png']) {
+      this._width = this._canvas.width = this.frames['0.png'].frame.w;
+      this._height = this._canvas.height = this.frames['0.png'].frame.h;
     } else {
       console.error(`缺少初始帧 0.png`);
       return;
@@ -91,8 +91,16 @@ class AtlasPlayer {
   }
 
   play() {
+    if (this._isDestroy) {
+      console.warn(`player is destroy! need to init again`);
+      return;
+    }
     if (!this.initComplete) {
       this.queueFn.push({ fn: this.play, arguments: [] });
+      return;
+    }
+    if (this._isPlay) {
+      console.warn(`player is playing!`);
       return;
     }
     this._isPlay = true;
@@ -120,14 +128,30 @@ class AtlasPlayer {
   }
 
   stop() {
-    clearInterval(this._interval);
+    if (this._isDestroy) {
+      console.warn(`player is destroy! need to init again`);
+      return;
+    }
+    if (!this._isPlay) {
+      console.warn(`player had stop!`);
+      return;
+    }
+    console.log(`player stop`);
+    clearInterval(this.intervalKey);
     this._isPlay = false;
     this.curFrame = 0;
     this._times = 0;
   }
 
   destroy() {
+    if (this._isDestroy) {
+      console.warn(`player is destroy! need to init again`);
+      return;
+    }
     clearInterval(this.intervalKey);
+    this.dom.removeChild(this._canvas);
+    this._canvas = null;
+    this._isDestroy = true;
   }
 
   loadImg(imgUrl) {
@@ -139,22 +163,6 @@ class AtlasPlayer {
         reject(new Error(`无法加载图片${imgUrl}`));
       };
       this.imgDom.src = imgUrl;
-    });
-  }
-
-  loadJson(jsonPath) {
-    return new Promise((resolve, reject) => {
-      let request = new XMLHttpRequest();
-      request.open("get", jsonPath);
-      request.send(null);
-      request.onload = function() {
-        if (request.status == 200) {
-          /*返回状态为200，即为数据获取成功*/
-          resolve(request.responseText);
-        } else {
-          reject();
-        }
-      };
     });
   }
 }

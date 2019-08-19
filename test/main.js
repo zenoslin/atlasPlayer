@@ -1,23 +1,38 @@
-import AtlasPlayer from "./atlasPlayer.js";
+import AtlasPlayer from "./AtlasPlayer.js";
+
+let isInited = false;
 
 let btn_init = document.getElementById("init");
 btn_init.onclick = function() {
   initPlayer();
+  isInited = true;
 };
 
 let btn_play = document.getElementById("play");
 btn_play.onclick = function() {
-  window.player.play();
+  if (isInited) {
+    window.player.play();
+  } else {
+    console.error(`please init AtlasPlayer!`);
+  }
 };
 
 let btn_stop = document.getElementById("stop");
 btn_stop.onclick = function() {
-  window.player.stop();
+  if (isInited) {
+    window.player.stop();
+  } else {
+    console.error(`please init AtlasPlayer!`);
+  }
 };
 
 let btn_destroy = document.getElementById("destroy");
 btn_destroy.onclick = function() {
-  window.player.destroy();
+  if (isInited) {
+    window.player.destroy();
+  } else {
+    console.error(`please init AtlasPlayer!`);
+  }
 };
 
 async function initPlayer() {
